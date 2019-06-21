@@ -1,0 +1,451 @@
+swagger: '2.0'
+info:
+  description: API to retrieve customer information to support their ground handled and in-air operations.
+  version: 1.0.0
+  title: Customer Detail API
+host: qa-apigateway.delta.com
+basePath: /customerTBD/v1
+schemes:
+  - https
+paths:
+  /customer/tbd:
+    post:
+      tags:
+        - 'customerDetail'
+      summary: This feature retrieves customer details for specified flight.
+      description: This method retrieves the customer details for a specified flight to aid ground handling and in-air operations. 
+      operationId: customerDetail
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: transactionId
+          in: header
+          description: A unique consumer generated ID generated for each request.
+          required: true
+          type: string
+        - name: Accept
+          in: header
+          description: 'The format (MIME type) of the response. Example, application/json, text/xml.'
+          required: true
+          type: string
+          default: application/json
+        - name: ApplicationName
+          in: header
+          description: Identifier of the API's consumer application.
+          required: true
+          type: string
+        - name: Content-Type
+          in: header
+          description: 'The format (MIME type) of the request. Example, application/json, text/xml.'
+          required: true
+          type: string
+          default: application/json
+        - name: applicationVersionNum
+          in: header
+          description: The version number of the application invoking the API.
+          required: false
+          type: string
+        - name: applicationDeviceOS
+          in: header
+          description: The operating system version number of the application invoking the API.
+          required: false
+          type: string
+        - in: body
+          name: customerRequest
+          required: false
+          schema:
+            $ref: '#/definitions/customerRequest'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/customerResponse'
+        '400':
+          description: Bad data
+          schema:
+            $ref: '#/definitions/error'
+        '401':
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/error'
+        '404':
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error'
+        '424':
+          description: No result
+          schema:
+            $ref: '#/definitions/error'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error'
+        '503':
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/error'
+      security:
+        - OauthSecurity: []
+securityDefinitions:
+  OauthSecurity:
+    description: Oauth security defined for securing the API.
+    type: oauth2
+    tokenUrl: 'https://qa-apigateway.delta.com/v1/oauth/token'
+    flow: application
+    scopes:
+      default: Default scope
+definitions:
+  customerRequest:
+    type: object
+    properties:
+      customerId:
+        type: string
+        description: 'Customer Id uniquely identifies a customer traveling on the specified flight using the customer identifier. Example: 0123456789'
+      customerIdCode:
+        type: string
+        description: 'Customer Id Code identifies the type of identifer used to search for a customer traveling on the specified flight in coordination with the customer identifier. Example: DL'        
+      flightNum:
+        type: string
+        description: 'Flight Number uniquely identifies travel between two or more transportation stations, which is offered by a carrier in their schedule. Example: 275'
+      departureLocalDt:
+        type: string
+        description: 'Schedule Departure Airport Code specifies the IATA (International Air Transport Association) location identifier for an airport designated as the scheduled departure point of the flight leg. Refer to Airport Code. Example: 2019-03-27'
+      departureAirportCode:
+        type: string
+        description: 'Flight Number uniquely identifies travel between two or more transportation stations, which is offered by a carrier in their schedule. Example: DTW'
+      arrivalAirportCode:
+        type: string
+        description: 'Schedule Arrival Airport Code specifies the IATA (International Air Transport Association) location identifier for an airport that is the scheduled destination airport for a flight leg. Refer to Airport Code. Example: NRT'
+      operatingCarrierCode:
+        type: string
+        description: 'Operating Carrier Code identifies the carrier responsible for operating a given flight. Example: DL'
+    description: 'Customer Request identifies the assigned position, cabin class and service assignments for a crew member on a flight.'
+  customerResponse:
+    type: object
+    properties:
+      customerGroupings:
+        type: array
+        description: 'Returns each customer associated with a flight.'
+        items:
+          $ref: '#/definitions/customerBooking'     
+    description: 'Customer response identifies the customers associated with a flight.'    
+  customerBooking:
+    type: object
+    properties:
+      bookingId:
+        type: string
+        description: 'Booking ID identifies the customer record number for like customers under a single booking. Example: ACB123'
+      bookingCarrierCode:
+        type: string
+        description: 'Booking Carrier Code identifies the Carrier responsible for booking the customer. Example: DL'
+      customers:
+        type: array
+        description: 'Returns each customer associated with a flight.'
+        items:
+          $ref: '#/definitions/customers'  
+  customers:
+    type: object
+    properties:
+      demographics:
+          $ref: '#/definitions/demographics'
+      checkedIn:
+          $ref: '#/definitions/checkedIn' 
+      baggage:
+          $ref: '#/definitions/baggage'
+      handlingStatus:
+          $ref: '#/definitions/handlingStatus'           
+      cabinRegrade:
+          $ref: '#/definitions/cabinRegrade'
+      customerIds:
+        type: array
+        items:
+          $ref: '#/definitions/customerIds'
+      loyaltyStatus:
+        type: array
+        items:
+          $ref: '#/definitions/loyaltyStatus'          
+      attributes:
+        type: array
+        items:
+          $ref: '#/definitions/customerAttributes'
+      specialServiceRequests:
+        type: array
+        items:
+          $ref: '#/definitions/specialServiceRequests'
+      connections:
+        type: array
+        items:
+          $ref: '#/definitions/connections'        
+      contactMethods:
+        type: array
+        items:
+          $ref: '#/definitions/contactMethods'
+    description: 'Customers represents an individual traveler on a specified flight.'
+  handlingStatus:
+    type: object
+    properties:
+      travelCategoryCode:
+        type: string
+        description: 'Category code identifies the travel classification for the customer. Example: Commerical, Rebate, Duty'        
+      nonRevenue:
+        type: boolean
+        description: 'Nonrevenue identifies an assigned seat number for the customer.'
+      bookingClassCode:
+        type: string
+        description: 'Booking Class Code identifies the type of ticket requested by a customer. Example: M,D,T,Z'
+      boarded:
+        type: boolean
+        description: 'Boarded identifies if a customer has boarded the aircraft for their flight.'
+      delete:
+        type: boolean
+        description: 'Delete if a customer record should be deleted.'
+      seatingStatusCode:
+        type: string
+        description: 'Seating Status Code identifies the status of a seat assignment to a customer. Example: HK'
+      seatNum:
+        type: string
+        description: 'Seat Number identifies an assigned seat number for the customer.'
+      classofServiceCode:
+        type: string
+        description: 'Class of Service Code identifies the Cabin class assigned to the customer.'    
+  cabinRegrade:
+    type: object
+    properties:
+      fromCabinClassCode:
+        type: string
+        description: 'From Cabin Class Code identifies the cabin/class the customer was assigned to prior to the regrade action. Examples: C, F, W, Y'
+      toCabinClassCode:
+        type: string
+        description: 'To Cabin Class Code identifies the cabin/class  the customer is assigned to following to the regrade action. Examples: C, F, W, Y'        
+      actionCode:
+        type: string
+        description: 'Action Code identifies the state of regrade action committed by the agent. Examples: (no clue here - accepted, rejected, stand by?)'      
+      typeCode:
+        type: string
+        description: 'Type Code identifies the category of regrade associated with the customer. Examples: upgrade, downgrade: '
+      commentText:
+        type: string
+        description: 'Comment Text identifies additional information provided by the agent to define the parameters of the regrade. Examples: Free text comment about circumstances of regrade'        
+      priorityCode:
+        type: string
+        description: 'Priority Code identifies the hierarchy of a individual regrade action relative to other regrades on that flight segment. Examples: 1, 2, A, B'        
+      reasonTypeCode:
+        type: string
+        description: 'Reason Type Code identifies the reason for the regrade action having been initiated by abn agent. Examples: CURRENT_FLIGHT_OVERSOLD, CABIN_CONFIGURATION_CHANGE, CHECKIN_ERROR'        
+  checkedIn:
+    type: object
+    properties:
+      checkedIn:
+        type: boolean
+        description: 'Checked In identifies if a customer has checked in for their flight.'
+      checkedInDateTs:
+        type: boolean
+        description: 'Checked In Date Timestamp identifies when a customer has checked in for their flight. Do we need this? Example: 2019-04-23T14:32:28+06:00'        
+      checkedInChannelCode:
+        type: string
+        description: 'Checked In Channel Code identifies the channel used to check in the customer. Example: Official Website, App, Self-Service, Agent'
+      checkedInAgentNum:
+        type: string
+        description: 'Checked In Agent Number identifies the agent that checked in the customer.'
+      checkedInDeviceNum:
+        type: string
+        description: 'Checked In Device Number identifies the device used by the agent that checked in the customer.'
+      checkedInAirportCode:
+        type: string
+        description: 'Checked In Airport Code identifies the station that checked in the customer.'        
+  connections:
+    type: object
+    properties:
+      connectionTypeCode:
+        type: string
+        description: 'Connection Type Code identifies the type of connection a passenger is or has made with regards to the current flight leg. Example: Previous Travel Segment, Next Travel Segment'
+      carrierCode:
+        type: string
+        description: 'Carrier Code identifies the carrier responsible for operating a given flight. Example: DL'       
+      flightNum:
+        type: string
+        description: 'Flight Number uniquely identifies travel between two or more transportation stations, which is offered by a carrier in their schedule. Example: 275'
+      arrivalAirportCode:
+        type: string
+        description: 'Schedule Arrival Airport Code specifies the IATA (International Air Transport Association) location identifier for an airport that is the scheduled destination airport for a flight leg. Refer to Airport Code. Example: NRT'
+      departureAirportCode:
+        type: string
+        description: 'Flight Number uniquely identifies travel between two or more transportation stations, which is offered by a carrier in their schedule. Example: DTW'
+      departureLocalDateTs:
+        type: string
+        description: 'Schedule Departure Date Timestamp specifies the date and time for the scheduled departure of a flight leg. Example: 2019-03-27T08:29:37+01:00'
+      gateCode:
+        type: string
+        description: 'Gate Code identifies the connecting gate for the customer. Example:  DL'        
+    description: 'Connections represents a subsequent flight leg associated with a customers travels.'
+  customerIds:
+    type: object
+    properties:
+      customerIdText:
+        type: string
+        description: 'Customer Identifier uniquely identifies a customer. Example:  0000123456'
+      customerIdCode:
+        type: string
+        description: 'Customer Identifier Code uniquely identifies the type of identifier associated with a customer. Example:  PNR'        
+    description: 'Customer Identifiers represents all the different non-loyalty identifers that would represent a customer. Example: PNR'
+  loyaltyStatus:
+    type: object
+    properties:
+      loyaltyStatusCode:
+        type: string
+        description: 'Loyalty status code identifies the loyalty tier for a customer. Example:  Diamond'
+      loyaltyNum:
+        type: string
+        description: 'Loyalty number identifies the loyalty identifier for a customer. Example:  1234567890'
+      carrierCode:
+        type: string
+        description: 'Carrier code identifies the carrier associated with the loyalty status for a customer. Example:  DL'
+    description: 'Loyalty STatus represents the customers loyalty affiliation, tier and identifiers.'       
+  contactMethods:
+    type: object
+    properties:
+        contactAdr:
+          type: string
+          description: 'Specifies a charecter string which when input within a particular context will direct information to a resource available to a specific person, organization or other entity as defined for enterprise use.'
+        methodCode:
+          type: string
+          description: 'Specifies a vehicle or device used to contact a person, organization or other entity as defined from an enterprise perspective. E.g. S - SMS, VC - VoiceCall'
+        pushDeviceTypeCode:
+          type: string
+          description: 'Specifies a kind of mobile device that allows messages to pop up on the screen.'
+        phoneTypeName:
+          type: string
+          description: 'Provides the kind of phone e.g. mobile or landline.'
+        internationalPrefixText:
+          type: string
+          description: 'A countrys digit code that is prefixed to the phone number (United States international prefix would be 1)'
+        countryCode:
+          type: string
+          description: '2 character country code associated with a phone number.'
+        travelAgency: 
+          type: boolean
+          description: 'Indicates if this contact address belongs to a travel agency.'
+    description: 'Contact Methods represents the different methods a customer can be contacted.'            
+  customerAttributes:
+    type: object
+    properties:
+      attributeCode:
+        type: string
+        description: 'Attribute code identifies the various attributes for a customer. Example:  Corporate'
+      attributeText:
+        type: string
+        description: 'Attribute text identifies the status of the attribute for a customer. Example:  IBM'
+      attributeValue:
+        type: string
+        description: 'Attribute value identifies the numeric value of the attribute for a customer. Example:  SPID - 7362937647821'        
+    description: 'Indicators represents the customers different statuses identified across their customer record. Example: Delta360, VIP'         
+  demographics:
+    type: object
+    properties:
+      titleText:
+        type: string
+        description: 'Title text identifies the honorary title for the customer. Example: Mr, Mrs, Dr'
+      givenName:
+        type: string
+        description: 'Given Name identifies the first name demographic for the customer.'
+      familyName:
+        type: string
+        description: 'Family Name identifies the last name demographic for the customer.'
+      fullName:
+        type: string
+        description: 'Full Name identifies the full name for the customer.'
+      gender:
+        type: string
+        description: 'Gender identifies the gender for the customer.'
+      nationalityCode:
+        type: string
+        description: 'Nationality Code identifies the domicile for the customer.'
+      dateofBirth:
+        type: string
+        description: 'Date of Birth identifies the age for the customer.'
+      ageCode:
+        type: string
+        description: 'Age code identifies the age classification for the customer. Example: Infant, Child, Adult'
+    description: 'Demographics represents the customer demographics.'             
+  baggage:
+    type: object
+    properties:
+      checkedBaggageCnt:
+        type: boolean
+        description: 'Checked Baggage Count identifies the count of checked baggage for a  customer.'
+      cargoCnt:
+        type: integer
+        description: 'Cargo Count identifies the count of cargo for a customer.'        
+      baggageWeightNum:
+        type: integer
+        description: 'Baggage Weight number identifies the total weight of baggage for a customer.'
+      baggageLabelText:
+        type: integer
+        description: 'Baggage Label Text identifies the identifer for the label of the baggage for a customer.'                        
+  specialServiceRequests:
+    type: object
+    properties:
+      serviceCode:
+        type: string
+        description: 'Service Code identifies the a specific requirement for the customer. Example:  WHCR'
+      serviceText:
+        type: string
+        description: 'Service text identifies the textual description of a Special Service Request Code for a customer. Example:  NASIRHASSA/A 27MAR17'
+      statusCode:
+        type: string
+        description: 'Status code identifies the status of a Special Service Request Code for a customer. Example:  xx'
+      serviceTypeCode:
+        type: string
+        description: 'Service type code identifies the type of a Special Service Request Code for a customer. Example:  xx'                
+  error:
+    type: object
+    properties:
+      code:
+        type: string
+        example: ADD-YOUR-EXAMPLE
+        description: Error Code represents a alpha-numeric error code received from the error
+      message:
+        type: string
+        example: ADD-YOUR-EXAMPLE
+        description: Message represents a textual description of a given error code
+      developerMessage:
+        type: string
+        example: ADD-YOUR-EXAMPLE
+        description: Developer Message represents technical details about the error message
+      moreInfo:
+        type: array
+        description: More details about the error as needed
+        items:
+          $ref: '#/definitions/moreInfo'
+    description: |
+      'ErrorResponse represents error code, message, developer message and more info for a given api. Every HTTP status code returns different `code` value in the reponse based on the nature of error occured. Also, one HTTP status code can return different `code` for different usecases. The below table shows mapping of different `code`, `message` & `developerMessage` for each HTTP status code.
+
+
+      | **HTTP Status Code** | **Code** | **Message** | **Developer Message** |  
+      | ------------- |:-------------:|-------------:|-------------:|   
+      | `400` | `APG4001` | Bad Request | Invalid Input Value - Employee Id|  
+      | `400` | `APG4002` | Bad Request | Invalid Input Value - Year Month|  
+      | `400` | `APG4003` | Bad Request | Invalid Input Value - Month Count| 
+      | `400` | `APG4004` | Bad Request | Missing Input Parameter|
+      | `401` | `APG4011` | Bad or Missing API Key | Apikey verification failed - Invalid ApiKey|  
+      | `401` | `APG4012` | Unauthorized | Invalid Access Token|  
+      | `404` | `APG4041` | Not Found | Requested resource is not found|  
+      | `424` | `APG4241` | No Result | No results found for the request.|  
+      | `500` | `APG5001` | Internal Server Error | Service Error - The server encountered an error while attempting to fulfill the request.|
+      | `503` | `APG5031` The Service is temporarily unavailable| messaging.adaptors.http.flow.NoActiveTargets|  
+      | `504` | `APG5041` | Gateway Timeout| messaging.adaptors.http.flow.GatewayTimeout|  
+
+      ###`Please add the backend error code in the above table`###
+  moreInfo:
+    properties:
+      code:
+        type: string
+        description: Error code sent by API w.r.t. each validation
+      field:
+        type: string
+        description: Each exact property field that was validated
+      message:
+        type: string
+        description: Each error message on the property level validation done by the API
